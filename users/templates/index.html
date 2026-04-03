@@ -7,6 +7,10 @@
 	<link rel="stylesheet" href="styles.css">
 </head>
 <body>
+	<div class="loading-banner hidden" id="loadingBanner" role="status" aria-live="polite" aria-atomic="true">
+		<div class="loading-spinner" aria-hidden="true"></div>
+		<span id="loadingText">Working...</span>
+	</div>
 	<main class="shell">
 		<section class="hero">
 			<div class="hero-copy">
@@ -181,9 +185,55 @@
 				</article>
 			</div>
 
+			<article class="card operations-card">
+				<p class="card-label">Money actions</p>
+				<div class="operations-grid">
+					<form id="depositForm" class="op-form" novalidate>
+						<h3>Deposit</h3>
+						<label>
+							Amount
+							<input id="depositAmount" type="text" placeholder="Enter amount" inputmode="decimal">
+							<span class="error" data-error-for="depositAmount"></span>
+						</label>
+						<button type="submit">Deposit</button>
+					</form>
+
+					<form id="withdrawForm" class="op-form" novalidate>
+						<h3>Withdraw</h3>
+						<label>
+							Amount
+							<input id="withdrawAmount" type="text" placeholder="Enter amount" inputmode="decimal">
+							<span class="error" data-error-for="withdrawAmount"></span>
+						</label>
+						<button type="submit">Withdraw</button>
+					</form>
+
+					<form id="sendMoneyForm" class="op-form" novalidate>
+						<h3>Send Money</h3>
+						<label>
+							Recipient account
+							<input id="sendAccount" type="text" placeholder="Enter recipient account" inputmode="numeric" maxlength="10">
+							<span class="error" data-error-for="sendAccount"></span>
+						</label>
+						<label>
+							Confirm account
+							<input id="confirmSendAccount" type="text" placeholder="Repeat recipient account" inputmode="numeric" maxlength="10">
+							<span class="error" data-error-for="confirmSendAccount"></span>
+						</label>
+						<label>
+							Amount
+							<input id="sendAmount" type="text" placeholder="Enter amount" inputmode="decimal">
+							<span class="error" data-error-for="sendAmount"></span>
+						</label>
+						<button type="submit">Send</button>
+					</form>
+				</div>
+				<p class="status-message" id="actionStatus" aria-live="polite"></p>
+			</article>
+
 			<article class="card transactions-card">
 				<p class="card-label">Recent activity</p>
-				<div class="transaction-list">
+				<div class="transaction-list" id="transactionList">
 					<div class="transaction-row">
 						<div>
 							<strong>Salary deposit</strong>

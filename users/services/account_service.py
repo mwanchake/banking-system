@@ -14,22 +14,25 @@ def generate_account_number():
 
 #create account
 def create_account(dtos: CreateAccountDTO) -> AccountResponseDTO:
-    if User.objects.filter(id_number=dtos.id_number).exists():
+    if User.objects.filter(username=dtos.id_number).exists():
         raise ValueError("Account already exists")
 
     #create user
-    user = User.objects.create(
+    user = User.objects.create_user(
         first_name=dtos.first_name,
         last_name=dtos.last_name,
-        id_number=dtos.id_number,
+        username=dtos.id_number,
+        password=dtos.password,
         email=dtos.email,
     )
     #link user to account
     account_number = generate_account_number()
     account = Account.objects.create(
         user=user,
+        id_number=dtos.id_number,
+        phone_number=dtos.phone_number,
         account_number=account_number,
-        balance = Decimal("0.00")
+        balance=Decimal("0.00"),
     )
     return AccountResponseDTO(
         account_number=account.account_number,

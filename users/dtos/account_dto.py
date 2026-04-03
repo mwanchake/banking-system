@@ -10,8 +10,10 @@ from datetime import datetime
 class CreateAccountDTO:
     first_name: str
     last_name: str
-    id_number: int  # national ID or similar
+    id_number: str
+    phone_number: str
     email: str
+    password: str
 
 
 

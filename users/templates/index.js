@@ -17,6 +17,11 @@ const detailName = document.getElementById("detailName");
 const detailIdNumber = document.getElementById("detailIdNumber");
 const detailEmail = document.getElementById("detailEmail");
 const detailAccount = document.getElementById("detailAccount");
+const depositForm = document.getElementById("depositForm");
+const withdrawForm = document.getElementById("withdrawForm");
+const sendMoneyForm = document.getElementById("sendMoneyForm");
+const transactionList = document.getElementById("transactionList");
+const actionStatus = document.getElementById("actionStatus");
 
 const registerFields = {
 	firstName: document.getElementById("firstName"),
@@ -41,19 +46,54 @@ const resetFields = {
 	resetConfirmPassword: document.getElementById("resetConfirmPassword"),
 };
 
+const actionFields = {
+	depositAmount: document.getElementById("depositAmount"),
+	withdrawAmount: document.getElementById("withdrawAmount"),
+	sendAccount: document.getElementById("sendAccount"),
+	confirmSendAccount: document.getElementById("confirmSendAccount"),
+	sendAmount: document.getElementById("sendAmount"),
+};
+
 const sendOtpButton = document.getElementById("sendOtpButton");
 const otpStatus = document.getElementById("otpStatus");
+const loadingBanner = document.getElementById("loadingBanner");
+const loadingText = document.getElementById("loadingText");
+const API_BASE_URL = "http://127.0.0.1:8000";
 
 const demoState = {
 	registeredAccount: null,
 	signedIn: false,
 	profile: null,
 	resetOtp: null,
+	balance: 0,
 };
+
+async function postJson(endpoint, payload) {
+	const url = `${API_BASE_URL}${endpoint}`;
+	const response = await fetch(url, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify(payload),
+	});
+
+	const raw = await response.text();
+	let data = {};
+	try {
+		data = raw ? JSON.parse(raw) : {};
+	} catch {
+		data = { error: raw || "Request failed." };
+	}
+
+	if (!response.ok) {
+		throw new Error(data.error || data.message || `Request failed (${response.status}) at ${url}`);
+	}
+
+	return data;
+}
 
 function setError(fieldName, message) {
 	const errorNode = document.querySelector(`[data-error-for="${fieldName}"]`);
-	const input = registerFields[fieldName] || loginFields[fieldName] || resetFields[fieldName];
+	const input = registerFields[fieldName] || loginFields[fieldName] || resetFields[fieldName] || actionFields[fieldName];
 
 	if (errorNode) {
 		errorNode.textContent = message;
@@ -71,6 +111,33 @@ function clearErrors(fieldGroup) {
 
 function setLoginStatus(message) {
 	loginStatus.textContent = message;
+	loginStatus.style.color = "var(--success)";
+}
+
+function setLoginErrorStatus(message) {
+	loginStatus.textContent = message;
+	loginStatus.style.color = "var(--danger)";
+}
+
+function setLoadingState(isLoading, message) {
+	if (loadingText) {
+		loadingText.textContent = message || "Working...";
+	}
+
+	if (loadingBanner) {
+		loadingBanner.classList.toggle("hidden", !isLoading);
+	}
+
+	registerForm.querySelectorAll("button").forEach((button) => {
+		button.disabled = isLoading;
+	});
+	loginForm.querySelectorAll("button").forEach((button) => {
+		button.disabled = isLoading;
+	});
+}
+
+function setActionStatus(message) {
+	actionStatus.textContent = message;
 }
 
 function isValidEmail(value) {
@@ -91,6 +158,47 @@ function isValidPhoneNumber(value) {
 
 function sanitizeNumeric(value) {
 	return value.replace(/\D/g, "");
+}
+
+function parseAmount(value) {
+	const normalized = Number.parseFloat(value.replace(/[^\d.]/g, ""));
+	return Number.isFinite(normalized) ? normalized : NaN;
+}
+
+function isValidAccountNumber(value) {
+	return /^\d{10}$/.test(value);
+}
+
+function formatCurrency(amount) {
+	return new Intl.NumberFormat("en-US", {
+		style: "currency",
+		currency: "USD",
+	}).format(amount);
+}
+
+function addTransactionRow(title, dayLabel, amountValue, type) {
+	const row = document.createElement("div");
+	row.className = "transaction-row";
+
+	const left = document.createElement("div");
+	const titleNode = document.createElement("strong");
+	titleNode.textContent = title;
+	const dateNode = document.createElement("span");
+	dateNode.textContent = dayLabel;
+	left.appendChild(titleNode);
+	left.appendChild(dateNode);
+
+	const amountNode = document.createElement("span");
+	amountNode.className = type === "credit" ? "credit" : "debit";
+	amountNode.textContent = `${type === "credit" ? "+" : "-"} ${formatCurrency(amountValue)}`;
+
+	row.appendChild(left);
+	row.appendChild(amountNode);
+	transactionList.prepend(row);
+}
+
+function updateBalanceDisplay() {
+	balanceValue.textContent = formatCurrency(demoState.balance);
 }
 
 function validateRegisterForm() {
@@ -185,19 +293,6 @@ function validateLoginForm() {
 		isValid = false;
 	}
 
-	if (!demoState.registeredAccount) {
-		setError("loginIdNumber", "Account does not exist.");
-		isValid = false;
-	}
-
-	if (
-		demoState.registeredAccount &&
-		(idNumber !== demoState.registeredAccount.idNumber || password !== demoState.registeredAccount.password)
-	) {
-		setError("loginPassword", "Invalid ID number or password.");
-		isValid = false;
-	}
-
 	return isValid;
 }
 
@@ -275,7 +370,8 @@ function showDashboard(profile) {
 	demoState.profile = profile;
 
 	welcomeTitle.textContent = `Account overview for ${profile.name}`;
-	balanceValue.textContent = profile.balance;
+	demoState.balance = profile.balance;
+	updateBalanceDisplay();
 	detailName.textContent = profile.name;
 	detailIdNumber.textContent = profile.idNumber;
 	detailEmail.textContent = profile.email;
@@ -283,6 +379,92 @@ function showDashboard(profile) {
 
 	authCard.classList.add("hidden");
 	dashboard.classList.remove("hidden");
+}
+
+function validateDepositForm() {
+	const rawAmount = actionFields.depositAmount.value.trim();
+	let isValid = true;
+
+	setError("depositAmount", "");
+
+	if (rawAmount.length === 0) {
+		setError("depositAmount", "This field cannot be empty.");
+		isValid = false;
+	} else {
+		const amount = parseAmount(rawAmount);
+		if (!Number.isFinite(amount) || amount <= 0) {
+			setError("depositAmount", "Enter a valid amount greater than 0.");
+			isValid = false;
+		}
+	}
+
+	return isValid;
+}
+
+function validateWithdrawForm() {
+	const rawAmount = actionFields.withdrawAmount.value.trim();
+	let isValid = true;
+
+	setError("withdrawAmount", "");
+
+	if (rawAmount.length === 0) {
+		setError("withdrawAmount", "This field cannot be empty.");
+		isValid = false;
+	} else {
+		const amount = parseAmount(rawAmount);
+		if (!Number.isFinite(amount) || amount <= 0) {
+			setError("withdrawAmount", "Enter a valid amount greater than 0.");
+			isValid = false;
+		} else if (amount > demoState.balance) {
+			setError("withdrawAmount", "Insufficient balance.");
+			isValid = false;
+		}
+	}
+
+	return isValid;
+}
+
+function validateSendMoneyForm() {
+	const recipient = sanitizeNumeric(actionFields.sendAccount.value.trim());
+	const confirmRecipient = sanitizeNumeric(actionFields.confirmSendAccount.value.trim());
+	const rawAmount = actionFields.sendAmount.value.trim();
+	let isValid = true;
+
+	setError("sendAccount", "");
+	setError("confirmSendAccount", "");
+	setError("sendAmount", "");
+
+	if (recipient.length === 0) {
+		setError("sendAccount", "This field cannot be empty.");
+		isValid = false;
+	} else if (!isValidAccountNumber(recipient)) {
+		setError("sendAccount", "Account number must be exactly 10 digits.");
+		isValid = false;
+	}
+
+	if (confirmRecipient.length === 0) {
+		setError("confirmSendAccount", "This field cannot be empty.");
+		isValid = false;
+	} else if (recipient !== confirmRecipient) {
+		setError("confirmSendAccount", "Account numbers do not match.");
+		isValid = false;
+	}
+
+	if (rawAmount.length === 0) {
+		setError("sendAmount", "This field cannot be empty.");
+		isValid = false;
+	} else {
+		const amount = parseAmount(rawAmount);
+		if (!Number.isFinite(amount) || amount <= 0) {
+			setError("sendAmount", "Enter a valid amount greater than 0.");
+			isValid = false;
+		} else if (amount > demoState.balance) {
+			setError("sendAmount", "Insufficient balance.");
+			isValid = false;
+		}
+	}
+
+	return isValid;
 }
 
 function updateAuthHeader(mode) {
@@ -384,33 +566,57 @@ function signOut() {
 	resetForm.reset();
 	clearErrors(loginFields);
 	clearErrors(resetFields);
+	clearErrors(actionFields);
 	setLoginStatus("");
+	setActionStatus("");
 	otpStatus.textContent = "OTP not sent yet.";
 	dashboard.classList.add("hidden");
 	authCard.classList.remove("hidden");
 	showLoginView();
 }
 
-registerForm.addEventListener("submit", (event) => {
+registerForm.addEventListener("submit", async (event) => {
 	event.preventDefault();
 
 	if (!validateRegisterForm()) {
 		return;
 	}
 
-	demoState.registeredAccount = {
-		firstName: registerFields.firstName.value.trim(),
-		lastName: registerFields.lastName.value.trim(),
-		phoneNumber: sanitizeNumeric(registerFields.phoneNumber.value.trim()),
+	const payload = {
+		first_name: registerFields.firstName.value.trim(),
+		last_name: registerFields.lastName.value.trim(),
+		phone_number: sanitizeNumeric(registerFields.phoneNumber.value.trim()),
 		email: registerFields.registerEmail.value.trim(),
-		idNumber: sanitizeNumeric(registerFields.registerIdNumber.value.trim()),
+		id_number: sanitizeNumeric(registerFields.registerIdNumber.value.trim()),
 		password: registerFields.registerPassword.value,
 	};
 
-	loginForm.reset();
-	clearErrors(loginFields);
-	setLoginStatus("");
-	showLoginView();
+	try {
+		setLoadingState(true, "Creating your account...");
+		const result = await postJson("/create_account/", payload);
+
+		demoState.registeredAccount = {
+			firstName: payload.first_name,
+			lastName: payload.last_name,
+			phoneNumber: payload.phone_number,
+			email: payload.email,
+			idNumber: payload.id_number,
+			password: payload.password,
+			accountNumber: result.account,
+			balance: Number(result.balance) || 0,
+		};
+
+		registerForm.reset();
+		loginForm.reset();
+		clearErrors(loginFields);
+		setLoginStatus("Account created successfully. Please log in.");
+		showLoginView();
+		loginFields.loginIdNumber.value = payload.id_number;
+	} catch (error) {
+		setLoginErrorStatus(error.message || "Unable to create account right now.");
+	} finally {
+		setLoadingState(false);
+	}
 });
 
 resetForm.addEventListener("submit", (event) => {
@@ -430,22 +636,101 @@ resetForm.addEventListener("submit", (event) => {
 	setLoginStatus("Password updated. Please log in with your new password.");
 });
 
-loginForm.addEventListener("submit", (event) => {
+loginForm.addEventListener("submit", async (event) => {
 	event.preventDefault();
 
 	if (!validateLoginForm()) {
 		return;
 	}
 
-	const profile = {
-		name: `${demoState.registeredAccount.firstName} ${demoState.registeredAccount.lastName}`,
-		email: demoState.registeredAccount.email,
-		idNumber: demoState.registeredAccount.idNumber,
-		phoneNumber: demoState.registeredAccount.phoneNumber,
-		balance: "$18,745.90",
-	};
+	const idNumber = sanitizeNumeric(loginFields.loginIdNumber.value.trim());
+	const password = loginFields.loginPassword.value;
 
-	showDashboard(profile);
+	try {
+		setLoadingState(true, "Signing you in...");
+		await postJson("/login/", {
+			id_number: idNumber,
+			password,
+		});
+
+		const fallbackName = demoState.registeredAccount
+			? `${demoState.registeredAccount.firstName} ${demoState.registeredAccount.lastName}`
+			: "Customer";
+
+		const profile = {
+			name: fallbackName,
+			email: demoState.registeredAccount?.email || "-",
+			idNumber,
+			phoneNumber: demoState.registeredAccount?.phoneNumber || "-",
+			balance: demoState.registeredAccount?.balance ?? 0,
+		};
+
+		setLoginStatus("Login successful.");
+		showDashboard(profile);
+	} catch (error) {
+		setError("loginPassword", error.message || "Invalid ID number or password.");
+		setLoginErrorStatus(error.message || "Login failed.");
+	} finally {
+		setLoadingState(false);
+	}
+});
+
+depositForm.addEventListener("submit", (event) => {
+	event.preventDefault();
+	setActionStatus("");
+
+	if (!validateDepositForm()) {
+		return;
+	}
+
+	const amount = parseAmount(actionFields.depositAmount.value.trim());
+	demoState.balance += amount;
+	if (demoState.registeredAccount) {
+		demoState.registeredAccount.balance = demoState.balance;
+	}
+	updateBalanceDisplay();
+	addTransactionRow("Cash deposit", "Now", amount, "credit");
+	setActionStatus(`Deposit successful: ${formatCurrency(amount)}.`);
+	depositForm.reset();
+});
+
+withdrawForm.addEventListener("submit", (event) => {
+	event.preventDefault();
+	setActionStatus("");
+
+	if (!validateWithdrawForm()) {
+		return;
+	}
+
+	const amount = parseAmount(actionFields.withdrawAmount.value.trim());
+	demoState.balance -= amount;
+	if (demoState.registeredAccount) {
+		demoState.registeredAccount.balance = demoState.balance;
+	}
+	updateBalanceDisplay();
+	addTransactionRow("Cash withdrawal", "Now", amount, "debit");
+	setActionStatus(`Withdrawal successful: ${formatCurrency(amount)}.`);
+	withdrawForm.reset();
+});
+
+sendMoneyForm.addEventListener("submit", (event) => {
+	event.preventDefault();
+	setActionStatus("");
+
+	if (!validateSendMoneyForm()) {
+		return;
+	}
+
+	const amount = parseAmount(actionFields.sendAmount.value.trim());
+	const recipient = sanitizeNumeric(actionFields.sendAccount.value.trim());
+	demoState.balance -= amount;
+	if (demoState.registeredAccount) {
+		demoState.registeredAccount.balance = demoState.balance;
+	}
+	updateBalanceDisplay();
+	addTransactionRow(`Transfer to ${recipient}`, "Now", amount, "debit");
+	setActionStatus(`Transfer successful: ${formatCurrency(amount)} sent to ${recipient}.`);
+	sendMoneyForm.reset();
 });
 
 Object.entries(registerFields).forEach(([fieldName, input]) => {
@@ -461,6 +746,13 @@ Object.entries(loginFields).forEach(([fieldName, input]) => {
 
 Object.entries(resetFields).forEach(([fieldName, input]) => {
 	input.addEventListener("input", () => setError(fieldName, ""));
+});
+
+Object.entries(actionFields).forEach(([fieldName, input]) => {
+	input.addEventListener("input", () => {
+		setError(fieldName, "");
+		setActionStatus("");
+	});
 });
 
 showRegisterButton.addEventListener("click", showRegisterView);

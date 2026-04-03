@@ -13,6 +13,7 @@
 	--accent-strong: #18b7ff;
 	--success: #58d6a7;
 	--danger: #ff7a90;
+	--loading-bg: rgba(5, 10, 18, 0.84);
 }
 
 body {
@@ -34,6 +35,35 @@ body::before {
 	background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
 	background-size: 48px 48px;
 	mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent 90%);
+}
+
+.loading-banner {
+	position: fixed;
+	top: 16px;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 30;
+	display: inline-flex;
+	align-items: center;
+	gap: 14px;
+	padding: 14px 22px;
+	border-radius: 999px;
+	border: 1px solid rgba(255, 255, 255, 0.16);
+	background: var(--loading-bg);
+	backdrop-filter: blur(16px);
+	box-shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
+	font-size: 1rem;
+	color: var(--text);
+	animation: banner-drop 0.22s ease-out;
+}
+
+.loading-spinner {
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	border: 3px solid rgba(255, 255, 255, 0.22);
+	border-top-color: var(--accent);
+	animation: spin 0.8s linear infinite;
 }
 
 .shell {
@@ -280,8 +310,33 @@ button:hover {
 
 .summary-card,
 .details-card,
-.transactions-card {
+.transactions-card,
+.operations-card {
 	padding: 24px;
+}
+
+.operations-card {
+	margin-top: 18px;
+}
+
+.operations-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 14px;
+	margin-bottom: 12px;
+}
+
+.op-form {
+	padding: 16px;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 16px;
+	background: rgba(255, 255, 255, 0.02);
+	gap: 10px;
+}
+
+.op-form h3 {
+	font-size: 1rem;
+	margin-bottom: 2px;
 }
 
 .accent {
@@ -357,9 +412,27 @@ dd {
 	display: none;
 }
 
+@keyframes spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes banner-drop {
+	from {
+		opacity: 0;
+		transform: translateX(-50%) translateY(-10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(-50%) translateY(0);
+	}
+}
+
 @media (max-width: 900px) {
 	.hero,
-	.grid {
+	.grid,
+	.operations-grid {
 		grid-template-columns: 1fr;
 	}
 
@@ -384,6 +457,11 @@ dd {
 	.dashboard-head {
 		align-items: flex-start;
 		flex-direction: column;
+	}
+
+	.loading-banner {
+		width: calc(100% - 20px);
+		justify-content: center;
 	}
 
 	.details-list {

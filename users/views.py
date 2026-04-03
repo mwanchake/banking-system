@@ -1,5 +1,5 @@
-from django.template.defaultfilters import last
-from narwhals import Decimal
+from django.contrib.auth import authenticate
+
 from rest_framework.decorators import api_view
 
 from users.dtos.account_dto import CreateAccountDTO
@@ -20,6 +20,8 @@ def create_account_view(request):
             first_name = request.data.get("first_name"),
             last_name= request.data.get("last_name"),
             id_number= request.data.get("id_number"),
+            phone_number= request.data.get("phone_number"),
+            password= request.data.get("password"),
             email= request.data.get("email"),
         )
 
@@ -31,7 +33,33 @@ def create_account_view(request):
         }, status.HTTP_201_CREATED)
 
     except Exception as e:
-        return Response({"error" : str(e)}, status=status.HTTP_201_CREATED)
+        return Response({"error" : str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+def login_view(request):
+    try:
+        id_number = request.data.get("id_number")
+        password = request.data.get("password")
+
+        if not id_number or not password:
+            return Response({"error": "id and password are required to log in "}, status=400)
+
+        user = authenticate(username=id_number, password=password)
+        if user is None:
+            return Response({"error": "invalid credentials"}, status=400)
+
+        return Response({
+            "message": "Login successful",
+            "user": user.username,
+        }, status=200)
+
+
+
+    except Exception as e:
+        return Response({"error" : str(e)}, status=400)
+
+
 
 @api_view(['POST'])
 def deposit_view(request):
