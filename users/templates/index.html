@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>NovaBank</title>
+	<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+	<main class="shell">
+		<section class="hero">
+			<div class="hero-copy">
+				<h1>NovaBank</h1>
+				<h2>Secure your money. Anytime. Anywhere.</h2>
+				<p class="hero-text">
+					Manage your accounts, transfer funds, and track transactions with confidence.
+				</p>
+			</div>
+
+			<div class="card auth-card" id="authCard">
+				<div class="card-header">
+					<h2 id="authTitle">Create Your Account</h2>
+					<p id="authSubtitle">Join today and start managing your finances securely.</p>
+				</div>
+
+				<div class="auth-switch" role="tablist" aria-label="Authentication mode">
+					<button type="button" class="toggle-button is-active" id="showRegister" aria-selected="true">Create account</button>
+					<button type="button" class="toggle-button" id="showLogin" aria-selected="false">Login</button>
+				</div>
+
+				<form id="registerForm" novalidate>
+					<label>
+						First name
+						<input id="firstName" type="text" placeholder="Jane" autocomplete="given-name">
+						<span class="error" data-error-for="firstName"></span>
+					</label>
+
+					<label>
+						Last name
+						<input id="lastName" type="text" placeholder="Doe" autocomplete="family-name">
+						<span class="error" data-error-for="lastName"></span>
+					</label>
+
+					<label>
+						Phone number
+						<input id="phoneNumber" type="tel" placeholder="0712345678" inputmode="tel" autocomplete="tel">
+						<span class="error" data-error-for="phoneNumber"></span>
+					</label>
+
+					<label>
+						Email address
+						<input id="registerEmail" type="email" placeholder="jane@example.com" autocomplete="email">
+						<span class="error" data-error-for="registerEmail"></span>
+					</label>
+
+					<label>
+						ID number
+						<input id="registerIdNumber" type="text" placeholder="12345678" inputmode="numeric" maxlength="16">
+						<span class="error" data-error-for="registerIdNumber"></span>
+					</label>
+
+					<label>
+						Password
+						<input id="registerPassword" type="password" placeholder="At least 8 characters" autocomplete="new-password">
+						<span class="error" data-error-for="registerPassword"></span>
+					</label>
+
+					<label>
+						Confirm password
+						<input id="confirmPassword" type="password" placeholder="Re-enter password" autocomplete="new-password">
+						<span class="error" data-error-for="confirmPassword"></span>
+					</label>
+
+					<button type="submit">Create account</button>
+					<p class="form-note">Required: first name, last name, phone number, email, ID number, and password.</p>
+				</form>
+
+				<form id="loginForm" class="hidden" novalidate>
+					<label>
+						ID number
+						<input id="loginIdNumber" type="text" placeholder="Enter your ID number" inputmode="numeric" maxlength="16" autocomplete="username">
+						<span class="error" data-error-for="loginIdNumber"></span>
+					</label>
+
+					<label>
+						Password
+						<input id="loginPassword" type="password" placeholder="Enter your password" autocomplete="current-password">
+						<span class="error" data-error-for="loginPassword"></span>
+					</label>
+
+					<button type="submit">Login</button>
+					<button type="button" class="link-button" id="showResetPassword">Forgot password?</button>
+					<p class="status-message" id="loginStatus" aria-live="polite"></p>
+					<p class="form-note">Login uses only ID number and password.</p>
+				</form>
+
+				<form id="resetForm" class="hidden" novalidate>
+					<h3>Reset Password</h3>
+					<label>
+						ID number
+						<input id="resetIdNumber" type="text" placeholder="Enter your ID number" inputmode="numeric" maxlength="16">
+						<span class="error" data-error-for="resetIdNumber"></span>
+					</label>
+
+					<label>
+						Phone number
+						<input id="resetPhoneNumber" type="tel" placeholder="Enter your phone number" inputmode="tel">
+						<span class="error" data-error-for="resetPhoneNumber"></span>
+					</label>
+
+					<div class="otp-row">
+						<button type="button" class="mini-button" id="sendOtpButton">Send OTP</button>
+						<span class="otp-status" id="otpStatus">OTP not sent yet.</span>
+					</div>
+
+					<label>
+						OTP
+						<input id="resetOtp" type="text" placeholder="Enter OTP" inputmode="numeric" maxlength="6">
+						<span class="error" data-error-for="resetOtp"></span>
+					</label>
+
+					<label>
+						New password
+						<input id="resetPassword" type="password" placeholder="Create a new password" autocomplete="new-password">
+						<span class="error" data-error-for="resetPassword"></span>
+					</label>
+
+					<label>
+						Confirm new password
+						<input id="resetConfirmPassword" type="password" placeholder="Re-enter new password" autocomplete="new-password">
+						<span class="error" data-error-for="resetConfirmPassword"></span>
+					</label>
+
+					<button type="submit">Update password</button>
+					<button type="button" class="link-button" id="backToLogin">Back to login</button>
+					<p class="form-note">To reset your password, enter your ID number and phone number.</p>
+				</form>
+			</div>
+		</section>
+
+		<section class="dashboard hidden" id="dashboard" aria-live="polite">
+			<div class="dashboard-head">
+				<div>
+					<p class="eyebrow">Welcome back</p>
+					<h2 id="welcomeTitle">Account overview</h2>
+				</div>
+				<button type="button" class="ghost-button" id="signOutButton">Sign out</button>
+			</div>
+
+			<div class="grid">
+				<article class="card summary-card accent">
+					<p class="card-label">Available balance</p>
+					<h3 id="balanceValue">$0.00</h3>
+					<p class="muted">Personal banking summary for the signed-in user.</p>
+				</article>
+
+				<article class="card details-card">
+					<p class="card-label">Profile details</p>
+					<dl class="details-list">
+						<div>
+							<dt>Account holder</dt>
+							<dd id="detailName">-</dd>
+						</div>
+						<div>
+							<dt>ID number</dt>
+							<dd id="detailIdNumber">-</dd>
+						</div>
+						<div>
+							<dt>Email</dt>
+							<dd id="detailEmail">-</dd>
+						</div>
+						<div>
+							<dt>Phone number</dt>
+							<dd id="detailAccount">-</dd>
+						</div>
+						<div>
+							<dt>Branch</dt>
+							<dd>Central Finance Branch</dd>
+						</div>
+					</dl>
+				</article>
+			</div>
+
+			<article class="card transactions-card">
+				<p class="card-label">Recent activity</p>
+				<div class="transaction-list">
+					<div class="transaction-row">
+						<div>
+							<strong>Salary deposit</strong>
+							<span>Today</span>
+						</div>
+						<span class="credit">+ $4,200.00</span>
+					</div>
+					<div class="transaction-row">
+						<div>
+							<strong>Electric bill</strong>
+							<span>Yesterday</span>
+						</div>
+						<span class="debit">- $180.45</span>
+					</div>
+					<div class="transaction-row">
+						<div>
+							<strong>Online transfer</strong>
+							<span>2 days ago</span>
+						</div>
+						<span class="debit">- $250.00</span>
+					</div>
+				</div>
+			</article>
+		</section>
+	</main>
+
+	<script src="index.js"></script>
+</body>
+</html>
