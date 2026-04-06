@@ -1,15 +1,18 @@
-import uuid
 from decimal import Decimal
 
 from django.db import transaction
-from pyarrow import timestamp
+
 
 from users.dtos.transaction_dto import TransactionDTO, TransactionResponseDTO, TransferDTO
 from users.models import Account, Transaction
 
 #Deposit
+@transaction.atomic
 def deposit(dtos: TransactionDTO) -> TransactionResponseDTO:
     account = Account.objects.get(account_number = dtos.account_number)
+
+    if not dtos.amount:
+        raise ValueError("Amount required")
 
     if dtos.amount <= 0:
         raise ValueError("Amount must be greater than 0")
@@ -17,6 +20,7 @@ def deposit(dtos: TransactionDTO) -> TransactionResponseDTO:
     account.save()
 
     tx = Transaction.objects.create(
+        user = account.user,
         account = account,
         amount = dtos.amount,
         transaction_type = "deposit",
@@ -44,6 +48,7 @@ def withdraw(dtos: TransactionDTO) -> TransactionResponseDTO:
      account.save()
 
      tx = Transaction.objects.create(
+         user = account.user,
          account = account,
          amount = dtos.amount,
          transaction_type = "withdraw",
@@ -86,12 +91,14 @@ def transfer(dtos: TransferDTO) -> TransactionResponseDTO:
 
     #record transaction for sender
     tx_sender = Transaction.objects.create(
+        user = dtos.user,
         account = from_account,
         amount = dtos.amount,
         transaction_type = "transfer",
     )
     # record transaction for receiver
     Transaction.objects.create(
+        user = dtos.user,
         account = to_account,
         amount = dtos.amount,
         transaction_type = "transfer",
@@ -105,5 +112,8 @@ def transfer(dtos: TransferDTO) -> TransactionResponseDTO:
         to_account=to_account.account_number,
         balance=from_account.balance,
     )
+#Transuction history
+def transaction_history_service(user):
+    return Transaction.objects.filter(user = user).order_by("-timestamp")
 
 

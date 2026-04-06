@@ -120,6 +120,45 @@ h1 {
 	box-shadow: 0 30px 60px rgba(0, 0, 0, 0.28);
 }
 
+.demo-warning-card {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 18px;
+	padding: 18px 20px;
+	margin: 20px 0 0;
+	border-color: rgba(255, 193, 92, 0.28);
+	background: linear-gradient(135deg, rgba(255, 193, 92, 0.14), rgba(255, 122, 144, 0.08));
+}
+
+.demo-tip-card {
+	border-color: rgba(100, 210, 255, 0.24);
+	background: linear-gradient(135deg, rgba(100, 210, 255, 0.12), rgba(88, 214, 167, 0.08));
+}
+
+.warning-label {
+	color: #ffd37a;
+	margin-bottom: 8px;
+}
+
+.demo-warning-text {
+	font-size: 1rem;
+	line-height: 1.5;
+	color: var(--text);
+	font-weight: 700;
+}
+
+.warning-dismiss-btn {
+	white-space: nowrap;
+	padding-inline: 16px;
+	background: rgba(255, 255, 255, 0.12);
+	color: var(--text);
+}
+
+.warning-dismiss-btn:hover {
+	background: rgba(255, 255, 255, 0.18);
+}
+
 .auth-card {
 	padding: 28px;
 }
@@ -339,6 +378,184 @@ button:hover {
 	margin-bottom: 2px;
 }
 
+.quick-amounts {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 8px;
+	margin-top: -2px;
+}
+
+.quick-amount {
+	padding: 10px 12px;
+	border-radius: 14px;
+	background: rgba(255, 255, 255, 0.06);
+	color: var(--text);
+	box-shadow: none;
+	font-weight: 600;
+	font-size: 0.9rem;
+}
+
+.quick-amount:hover {
+	transform: none;
+	box-shadow: none;
+	background: rgba(255, 255, 255, 0.12);
+}
+
+.transaction-confirmation {
+	position: fixed;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(0, 0, 0, 0.6);
+	backdrop-filter: blur(8px);
+	z-index: 40;
+	animation: fade-in 0.3s ease-out;
+}
+
+.transaction-confirmation.hidden {
+	display: none;
+}
+
+.confirmation-card {
+	background: var(--panel);
+	border: 1px solid var(--panel-border);
+	border-radius: 24px;
+	padding: 40px 32px;
+	text-align: center;
+	max-width: 360px;
+	box-shadow: 0 30px 80px rgba(0, 0, 0, 0.48);
+	animation: slide-up 0.4s ease-out;
+}
+
+.confirmation-circle {
+	width: 80px;
+	height: 80px;
+	margin: 0 auto 24px;
+	border-radius: 50%;
+	background: linear-gradient(135deg, var(--success), #3db083);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-shadow: 0 0 30px rgba(88, 214, 167, 0.32);
+	animation: circle-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.error-circle {
+	background: linear-gradient(135deg, var(--danger), #e14b67);
+	box-shadow: 0 0 30px rgba(255, 122, 144, 0.32);
+}
+
+.tick-icon {
+	width: 44px;
+	height: 44px;
+	color: white;
+	animation: tick-draw 0.4s ease-out 0.2s both;
+}
+
+.error-icon {
+	font-size: 2.4rem;
+	font-weight: 800;
+	line-height: 1;
+	color: white;
+	animation: tick-draw 0.4s ease-out 0.2s both;
+}
+
+#confirmationTitle {
+	font-size: 1.6rem;
+	margin-bottom: 8px;
+	color: var(--text);
+}
+
+#confirmationMessage {
+	color: var(--muted);
+	margin-bottom: 16px;
+	font-size: 0.95rem;
+}
+
+.error-card #errorMessage {
+	color: var(--muted);
+	margin-bottom: 24px;
+	font-size: 0.95rem;
+}
+
+.confirmation-details {
+	background: rgba(255, 255, 255, 0.04);
+	border-radius: 12px;
+	padding: 16px;
+	margin-bottom: 20px;
+	font-size: 0.9rem;
+	text-align: left;
+}
+
+.confirmation-detail-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	color: var(--muted);
+	margin-bottom: 8px;
+}
+
+.confirmation-detail-row:last-child {
+	margin-bottom: 0;
+}
+
+.confirmation-detail-label {
+	color: var(--muted);
+}
+
+.confirmation-detail-value {
+	color: var(--text);
+	font-weight: 600;
+}
+
+.confirmation-close-btn {
+	width: 100%;
+	padding: 12px 16px;
+}
+
+@keyframes fade-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes slide-up {
+	from {
+		opacity: 0;
+		transform: translateY(20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes circle-pop {
+	from {
+		opacity: 0;
+		transform: scale(0.6);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@keyframes tick-draw {
+	from {
+		opacity: 0;
+		transform: scale(0.5);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
 .accent {
 	background: linear-gradient(135deg, rgba(24, 183, 255, 0.25), rgba(88, 214, 167, 0.1));
 }
@@ -382,6 +599,10 @@ dd {
 .transaction-list {
 	display: grid;
 	gap: 14px;
+}
+
+#showMoreTransactions {
+	margin-top: 10px;
 }
 
 .transaction-row {
@@ -457,6 +678,10 @@ dd {
 	.dashboard-head {
 		align-items: flex-start;
 		flex-direction: column;
+	}
+
+	.quick-amounts {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
 	}
 
 	.loading-banner {

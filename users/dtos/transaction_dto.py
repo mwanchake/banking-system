@@ -3,6 +3,10 @@ from decimal import Decimal
 from datetime import datetime
 from typing import Optional
 
+from users.models import Account
+from users.models import User
+
+
 #INPUT dtos
 @dataclass
 class TransactionDTO:
@@ -19,9 +23,11 @@ class TransferDTO:
     """
     Transfer input from one account to another
     """
-    from_account: str
-    to_account: str
+    from_account: Account
+    to_account: Account
     amount: Decimal
+    user : User
+
 
 
 

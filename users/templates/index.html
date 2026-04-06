@@ -11,6 +11,32 @@
 		<div class="loading-spinner" aria-hidden="true"></div>
 		<span id="loadingText">Working...</span>
 	</div>
+
+	<div class="transaction-confirmation hidden" id="transactionConfirmation">
+		<div class="confirmation-card">
+			<div class="confirmation-circle">
+				<svg class="tick-icon" viewBox="0 0 24 24" aria-hidden="true">
+					<path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="currentColor"/>
+				</svg>
+			</div>
+			<h2 id="confirmationTitle">Transaction Successful</h2>
+			<p id="confirmationMessage">Your transaction has been processed.</p>
+			<div id="confirmationDetails" class="confirmation-details"></div>
+			<button type="button" class="confirmation-close-btn" id="confirmationCloseBtn">OK</button>
+		</div>
+	</div>
+
+	<div class="transaction-confirmation hidden error-confirmation" id="errorConfirmation" role="alertdialog" aria-modal="true" aria-labelledby="errorTitle" aria-describedby="errorMessage">
+		<div class="confirmation-card error-card">
+			<div class="confirmation-circle error-circle" aria-hidden="true">
+				<span class="error-icon">!</span>
+			</div>
+			<h2 id="errorTitle">Error</h2>
+			<p id="errorMessage">Something went wrong.</p>
+			<button type="button" class="confirmation-close-btn" id="errorCloseBtn">OK</button>
+		</div>
+	</div>
+
 	<main class="shell">
 		<section class="hero">
 			<div class="hero-copy">
@@ -151,11 +177,26 @@
 				<button type="button" class="ghost-button" id="signOutButton">Sign out</button>
 			</div>
 
+			<article class="card demo-warning-card hidden" id="demoWarningCard">
+				<div>
+					<p class="card-label warning-label">Demo notice</p>
+					<p class="demo-warning-text">⚠️ Demo Mode: All transactions are not real money</p>
+				</div>
+				<button type="button" class="mini-button warning-dismiss-btn" id="dismissDemoWarning">OK</button>
+			</article>
+
+			<article class="card demo-warning-card hidden" id="demoTipCard">
+				<div>
+					<p class="card-label warning-label">Demo tip</p>
+					<p class="demo-warning-text">💡 To experience money flow, create two accounts and transfer funds between them.</p>
+				</div>
+				<button type="button" class="mini-button warning-dismiss-btn" id="dismissDemoTip">OK</button>
+			</article>
+
 			<div class="grid">
 				<article class="card summary-card accent">
 					<p class="card-label">Available balance</p>
 					<h3 id="balanceValue">$0.00</h3>
-					<p class="muted">Personal banking summary for the signed-in user.</p>
 				</article>
 
 				<article class="card details-card">
@@ -175,7 +216,11 @@
 						</div>
 						<div>
 							<dt>Phone number</dt>
-							<dd id="detailAccount">-</dd>
+							<dd id="detailPhone">-</dd>
+						</div>
+						<div>
+							<dt>Account number</dt>
+							<dd id="detailAccountNumber">-</dd>
 						</div>
 						<div>
 							<dt>Branch</dt>
@@ -192,9 +237,15 @@
 						<h3>Deposit</h3>
 						<label>
 							Amount
-							<input id="depositAmount" type="text" placeholder="Enter amount" inputmode="decimal">
+							<input id="depositAmount" type="number" placeholder="Enter amount" inputmode="decimal" min="1" step="0.01">
 							<span class="error" data-error-for="depositAmount"></span>
 						</label>
+						<div class="quick-amounts" aria-label="Quick deposit amounts">
+							<button type="button" class="quick-amount" data-deposit-figure="20">$20</button>
+							<button type="button" class="quick-amount" data-deposit-figure="50">$50</button>
+							<button type="button" class="quick-amount" data-deposit-figure="100">$100</button>
+							<button type="button" class="quick-amount" data-deposit-figure="250">$250</button>
+						</div>
 						<button type="submit">Deposit</button>
 					</form>
 
@@ -205,6 +256,12 @@
 							<input id="withdrawAmount" type="text" placeholder="Enter amount" inputmode="decimal">
 							<span class="error" data-error-for="withdrawAmount"></span>
 						</label>
+						<div class="quick-amounts" aria-label="Quick withdrawal amounts">
+							<button type="button" class="quick-amount" data-withdraw-figure="20">$20</button>
+							<button type="button" class="quick-amount" data-withdraw-figure="50">$50</button>
+							<button type="button" class="quick-amount" data-withdraw-figure="100">$100</button>
+							<button type="button" class="quick-amount" data-withdraw-figure="250">$250</button>
+						</div>
 						<button type="submit">Withdraw</button>
 					</form>
 
@@ -212,12 +269,12 @@
 						<h3>Send Money</h3>
 						<label>
 							Recipient account
-							<input id="sendAccount" type="text" placeholder="Enter recipient account" inputmode="numeric" maxlength="10">
+							<input id="sendAccount" type="text" placeholder="Enter recipient account" inputmode="numeric" maxlength="20">
 							<span class="error" data-error-for="sendAccount"></span>
 						</label>
 						<label>
 							Confirm account
-							<input id="confirmSendAccount" type="text" placeholder="Repeat recipient account" inputmode="numeric" maxlength="10">
+							<input id="confirmSendAccount" type="text" placeholder="Repeat recipient account" inputmode="numeric" maxlength="20">
 							<span class="error" data-error-for="confirmSendAccount"></span>
 						</label>
 						<label>
@@ -232,30 +289,9 @@
 			</article>
 
 			<article class="card transactions-card">
-				<p class="card-label">Recent activity</p>
-				<div class="transaction-list" id="transactionList">
-					<div class="transaction-row">
-						<div>
-							<strong>Salary deposit</strong>
-							<span>Today</span>
-						</div>
-						<span class="credit">+ $4,200.00</span>
-					</div>
-					<div class="transaction-row">
-						<div>
-							<strong>Electric bill</strong>
-							<span>Yesterday</span>
-						</div>
-						<span class="debit">- $180.45</span>
-					</div>
-					<div class="transaction-row">
-						<div>
-							<strong>Online transfer</strong>
-							<span>2 days ago</span>
-						</div>
-						<span class="debit">- $250.00</span>
-					</div>
-				</div>
+				<p class="card-label">Transaction history</p>
+				<div class="transaction-list" id="transactionList"></div>
+				<button type="button" class="link-button hidden" id="showMoreTransactions">Show more</button>
 			</article>
 		</section>
 	</main>
