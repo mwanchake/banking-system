@@ -20,6 +20,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import Transaction
 
+from django.shortcuts import render
+
+def home(request):
+    return render(request, "index.html")
+
 
 @api_view(['POST'])
 def create_account_view(request):
